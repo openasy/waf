@@ -307,7 +307,6 @@ function TrafficPage({ call, sites, summary }: { call: Call; sites: Site[]; summ
       ),
     [traffic, range],
   );
-  const perSecond = (n: number) => n / (traffic?.bucketSeconds ?? 60);
   return (
     <>
       <PageHeader
@@ -353,7 +352,7 @@ function TrafficPage({ call, sites, summary }: { call: Call; sites: Site[]; summ
         <KpiCard label={t("traffic.upstreamErrors")} value={tot ? formatNumber(tot.upstreamErrors) : "–"} unit={t("traffic.upstreamErrorsUnit")} />
       </KpiGrid>
       <div className="grid gap-2.5 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Panel title={t("traffic.chart")} description={t("traffic.chartDetail")}>
+        <Panel title={t("traffic.chart")} description={t("traffic.chartDetail", { minutes: (traffic?.bucketSeconds ?? 60) / 60 })}>
           {traffic && (
             <TimeSeriesChart
               label={t("traffic.chart")}
@@ -362,11 +361,11 @@ function TrafficPage({ call, sites, summary }: { call: Call; sites: Site[]; summ
               area
               height={200}
               xTicks={6}
-              format={(v) => t("traffic.perSecond", { n: v.toFixed(2) })}
+              format={(v) => formatNumber(Math.round(v))}
               series={[
-                { id: "allowed", name: t("traffic.allowed"), data: traffic.buckets.map((b) => perSecond(b.requests - b.blocked - b.detected)) },
-                { id: "detected", name: t("traffic.detected"), color: "var(--oa-warning)", data: traffic.buckets.map((b) => perSecond(b.detected)) },
-                { id: "blocked", name: t("traffic.blocked"), color: "var(--oa-danger)", data: traffic.buckets.map((b) => perSecond(b.blocked)) },
+                { id: "allowed", name: t("traffic.allowed"), data: traffic.buckets.map((b) => b.requests - b.blocked - b.detected) },
+                { id: "detected", name: t("traffic.detected"), color: "var(--oa-warning)", data: traffic.buckets.map((b) => b.detected) },
+                { id: "blocked", name: t("traffic.blocked"), color: "var(--oa-danger)", data: traffic.buckets.map((b) => b.blocked) },
               ]}
             />
           )}
