@@ -1,0 +1,2560 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenAsy WAF API",
+    "version": "0.1.0",
+    "description": "Sites behind the web application firewall, the OWASP Core Rule Set they run in Coraza, exclusions, custom rules, and the requests the rules matched (ADR 0069).",
+    "license": {
+      "name": "AGPL-3.0-only",
+      "identifier": "AGPL-3.0-only"
+    }
+  },
+  "tags": [
+    {
+      "name": "Sites",
+      "description": "Host names, upstreams, mode and how the rule set runs."
+    },
+    {
+      "name": "Tuning",
+      "description": "Exclusions for false positives and rules of your own."
+    },
+    {
+      "name": "Events",
+      "description": "Requests the rules matched, and every request counted."
+    },
+    {
+      "name": "Product"
+    }
+  ],
+  "paths": {
+    "/api/v1/sites": {
+      "get": {
+        "operationId": "listSites",
+        "tags": [
+          "Sites"
+        ],
+        "summary": "Sites",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "viewer",
+        "description": "Needs the viewer role."
+      },
+      "post": {
+        "operationId": "createSite",
+        "tags": [
+          "Sites"
+        ],
+        "summary": "Add a site",
+        "description": "Needs the admin role. It starts in detection-only mode unless mode says otherwise, and is served at once.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewSite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "admin"
+      }
+    },
+    "/api/v1/sites/{id}": {
+      "get": {
+        "operationId": "getSite",
+        "tags": [
+          "Sites"
+        ],
+        "summary": "A site",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The site's id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "viewer",
+        "description": "Needs the viewer role."
+      },
+      "put": {
+        "operationId": "updateSite",
+        "tags": [
+          "Sites"
+        ],
+        "summary": "Change a site",
+        "description": "Needs the admin role. Such as turning blocking on. It takes effect at once.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The site's id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiteChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "admin"
+      },
+      "delete": {
+        "operationId": "deleteSite",
+        "tags": [
+          "Sites"
+        ],
+        "summary": "Delete a site",
+        "description": "Needs the admin role. Its host names are no longer served; its exclusions and rules go, its events stay until the retention.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The site's id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "admin"
+      }
+    },
+    "/api/v1/exclusions": {
+      "get": {
+        "operationId": "listExclusions",
+        "tags": [
+          "Tuning"
+        ],
+        "summary": "Exclusions",
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "query",
+            "required": false,
+            "description": "Only this site.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExclusionList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "viewer",
+        "description": "Needs the viewer role."
+      },
+      "post": {
+        "operationId": "createExclusion",
+        "tags": [
+          "Tuning"
+        ],
+        "summary": "Add an exclusion",
+        "description": "Needs the editor role. For a false positive: a rule, or one target of it, left out on a site, everywhere or under a path.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewExclusion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Exclusion"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "editor"
+      }
+    },
+    "/api/v1/exclusions/{id}": {
+      "delete": {
+        "operationId": "deleteExclusion",
+        "tags": [
+          "Tuning"
+        ],
+        "summary": "Delete an exclusion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The exclusion's id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "editor",
+        "description": "Needs the editor role."
+      }
+    },
+    "/api/v1/rules": {
+      "get": {
+        "operationId": "listRules",
+        "tags": [
+          "Tuning"
+        ],
+        "summary": "Custom rules",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "viewer",
+        "description": "Needs the viewer role."
+      },
+      "post": {
+        "operationId": "createRule",
+        "tags": [
+          "Tuning"
+        ],
+        "summary": "Add a custom rule",
+        "description": "Needs the editor role. Checked, compiled by Coraza, then served at once, after the rule set.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewRule"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rule"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "editor"
+      }
+    },
+    "/api/v1/rules/check": {
+      "post": {
+        "operationId": "checkRule",
+        "tags": [
+          "Tuning"
+        ],
+        "summary": "Check a custom rule",
+        "description": "Needs the editor role. Checks and compiles SecLang without keeping it.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleCheck"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleChecked"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "editor"
+      }
+    },
+    "/api/v1/rules/{id}": {
+      "get": {
+        "operationId": "getRule",
+        "tags": [
+          "Tuning"
+        ],
+        "summary": "A custom rule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The rule's id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rule"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "viewer",
+        "description": "Needs the viewer role."
+      },
+      "put": {
+        "operationId": "updateRule",
+        "tags": [
+          "Tuning"
+        ],
+        "summary": "Change a custom rule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The rule's id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rule"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "editor",
+        "description": "Needs the editor role."
+      },
+      "delete": {
+        "operationId": "deleteRule",
+        "tags": [
+          "Tuning"
+        ],
+        "summary": "Delete a custom rule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The rule's id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "editor",
+        "description": "Needs the editor role."
+      }
+    },
+    "/api/v1/crs": {
+      "get": {
+        "operationId": "getRuleSet",
+        "tags": [
+          "Tuning"
+        ],
+        "summary": "The Core Rule Set",
+        "description": "Needs the viewer role. Its request rules as Coraza compiled them, by group and paranoia level, with how often each matched in the last 24 hours.",
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "query",
+            "required": false,
+            "description": "Only this site.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Crs"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "viewer"
+      }
+    },
+    "/api/v1/events": {
+      "get": {
+        "operationId": "listEvents",
+        "tags": [
+          "Events"
+        ],
+        "summary": "Requests the rules matched",
+        "description": "Needs the viewer role. Newest first.",
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "query",
+            "required": false,
+            "description": "Only this site.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "description": "One or more of blocked, detected and logged, separated by commas.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "Part of the client address, path, query or message, a rule id or an event id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "range",
+            "in": "query",
+            "required": false,
+            "description": "How far back. 24h when left out.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1h",
+                "24h",
+                "7d",
+                "30d"
+              ]
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "From next of the page before.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "At most this many, 1 to 500. 100 when left out.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "viewer"
+      }
+    },
+    "/api/v1/events/{id}": {
+      "get": {
+        "operationId": "getEvent",
+        "tags": [
+          "Events"
+        ],
+        "summary": "A request the rules matched",
+        "description": "Needs the viewer role. By the reference the blocked client was shown.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The event's id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "viewer"
+      }
+    },
+    "/api/v1/traffic": {
+      "get": {
+        "operationId": "getTraffic",
+        "tags": [
+          "Events"
+        ],
+        "summary": "Traffic",
+        "description": "Needs the viewer role. Every request over the range in buckets, with the attacks, rules and clients matched most.",
+        "parameters": [
+          {
+            "name": "range",
+            "in": "query",
+            "required": false,
+            "description": "How far back. 24h when left out.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1h",
+                "24h",
+                "7d",
+                "30d"
+              ]
+            }
+          },
+          {
+            "name": "siteId",
+            "in": "query",
+            "required": false,
+            "description": "Only this site.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Traffic"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "viewer"
+      }
+    },
+    "/api/v1/summary": {
+      "get": {
+        "operationId": "getSummary",
+        "tags": [
+          "Product"
+        ],
+        "summary": "Overview",
+        "description": "Needs the viewer role. The proxy's state, the sites by mode and the last 24 hours.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Summary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "viewer"
+      }
+    },
+    "/api/v1/products": {
+      "get": {
+        "operationId": "listProducts",
+        "tags": [
+          "Product"
+        ],
+        "summary": "Other products of this install",
+        "responses": {
+          "200": {
+            "description": "From OPENASY_PRODUCTS, for the product switcher.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "x-openasy-role": "viewer",
+        "description": "Needs the viewer role."
+      }
+    },
+    "/api/v1/version": {
+      "get": {
+        "operationId": "getVersion",
+        "tags": [
+          "Product"
+        ],
+        "summary": "Version",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The running version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Version"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "operationId": "liveness",
+        "tags": [
+          "Product"
+        ],
+        "summary": "Liveness",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The process is running.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "operationId": "readiness",
+        "tags": [
+          "Product"
+        ],
+        "summary": "Readiness",
+        "description": "Ready while the database answers and the proxy serves the rules last saved.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Ready to serve.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database or the proxy is unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "operationId": "metrics",
+        "tags": [
+          "Product"
+        ],
+        "summary": "Prometheus metrics",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Metrics in the Prometheus text format.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-openasy-session",
+        "description": "The browser session after signing in (`openasy-session` when WAF runs on plain http://localhost). Requests that change something must come from the WAF origin."
+      },
+      "apiToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "An API token created under Settings → API tokens (`oa_waf_...`): one role, always an expiry (ADR 0003)."
+      },
+      "adminToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Only when WAF is started by its tests or a local script: one shared token with the admin role. A production install does not have it."
+      }
+    },
+    "responses": {
+      "Problem": {
+        "description": "An error, as RFC 9457 Problem Details.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Problem": {
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "invalid-token",
+              "invalid-json",
+              "invalid-body",
+              "conflict",
+              "not-found",
+              "engine-unavailable",
+              "internal-error",
+              "unauthenticated",
+              "invalid-credentials",
+              "mfa-required",
+              "mfa-setup-required",
+              "forbidden",
+              "cross-site",
+              "rate-limited"
+            ],
+            "description": "Stable; match on this."
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
+      "Status": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "Version": {
+        "type": "object",
+        "required": [
+          "product",
+          "version"
+        ],
+        "properties": {
+          "product": {
+            "const": "waf"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "ProductLink": {
+        "type": "object",
+        "required": [
+          "id",
+          "url"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The product, as OpenAsy names it.",
+            "examples": [
+              "dast"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The address people open it at.",
+            "examples": [
+              "https://dast.example.com"
+            ]
+          }
+        }
+      },
+      "ProductList": {
+        "type": "object",
+        "required": [
+          "products"
+        ],
+        "properties": {
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductLink"
+            }
+          }
+        }
+      },
+      "Summary": {
+        "type": "object",
+        "required": [
+          "engine",
+          "sites",
+          "rules",
+          "exclusions",
+          "day",
+          "events"
+        ],
+        "properties": {
+          "engine": {
+            "type": "object",
+            "required": [
+              "running",
+              "loaded",
+              "loadedAt",
+              "lastError",
+              "restarts",
+              "coraza",
+              "crs"
+            ],
+            "properties": {
+              "running": {
+                "type": "boolean",
+                "description": "The proxy, Coraza with the Core Rule Set, is running."
+              },
+              "loaded": {
+                "type": "boolean",
+                "description": "It serves the rules last saved."
+              },
+              "loadedAt": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "lastError": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Why it did not take the last rules, or stopped."
+              },
+              "restarts": {
+                "type": "integer"
+              },
+              "coraza": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "crs": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "sites": {
+            "type": "object",
+            "required": [
+              "total",
+              "detection",
+              "blocking"
+            ],
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "detection": {
+                "type": "integer"
+              },
+              "blocking": {
+                "type": "integer"
+              }
+            }
+          },
+          "rules": {
+            "type": "integer"
+          },
+          "exclusions": {
+            "type": "integer"
+          },
+          "day": {
+            "type": "object",
+            "required": [
+              "requests",
+              "blocked",
+              "detected",
+              "logged",
+              "upstreamErrors"
+            ],
+            "properties": {
+              "requests": {
+                "type": "integer"
+              },
+              "blocked": {
+                "type": "integer"
+              },
+              "detected": {
+                "type": "integer"
+              },
+              "logged": {
+                "type": "integer"
+              },
+              "upstreamErrors": {
+                "type": "integer"
+              }
+            },
+            "description": "Requests in the last 24 hours."
+          },
+          "events": {
+            "type": "object",
+            "required": [
+              "stored",
+              "dropped"
+            ],
+            "properties": {
+              "stored": {
+                "type": "integer"
+              },
+              "dropped": {
+                "type": "integer",
+                "description": "Reports of matched requests not kept, because more came than could be written."
+              }
+            }
+          }
+        }
+      },
+      "Site": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "hosts",
+          "upstream",
+          "mode",
+          "paranoia",
+          "inboundThreshold",
+          "disabledGroups",
+          "createdBy",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "Host names without the port, each on one site only. `*` takes every host no other site names.",
+            "examples": [
+              [
+                "shop.example.com",
+                "www.shop.example.com"
+              ]
+            ]
+          },
+          "upstream": {
+            "type": "string",
+            "format": "uri",
+            "description": "The application, http:// or https://, without a user or password.",
+            "examples": [
+              "http://shop:3000"
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "detection",
+              "blocking"
+            ],
+            "default": "detection",
+            "description": "detection: rules match and are reported, nothing is refused. New sites start here."
+          },
+          "paranoia": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4,
+            "default": 1,
+            "description": "The rule set's paranoia level: higher catches more and blocks more real users."
+          },
+          "inboundThreshold": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 5,
+            "description": "The anomaly score at which a request is blocked. 5 is one critical match."
+          },
+          "disabledGroups": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "911",
+                "913",
+                "920",
+                "921",
+                "922",
+                "930",
+                "931",
+                "932",
+                "933",
+                "934",
+                "941",
+                "942",
+                "943",
+                "944"
+              ]
+            },
+            "description": "Groups of the rule set turned off, for a stack the site does not run, such as 933 for PHP."
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SiteList": {
+        "type": "object",
+        "required": [
+          "sites"
+        ],
+        "properties": {
+          "sites": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Site"
+            }
+          }
+        }
+      },
+      "NewSite": {
+        "type": "object",
+        "required": [
+          "name",
+          "hosts",
+          "upstream"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "Host names without the port, each on one site only. `*` takes every host no other site names.",
+            "examples": [
+              [
+                "shop.example.com",
+                "www.shop.example.com"
+              ]
+            ]
+          },
+          "upstream": {
+            "type": "string",
+            "format": "uri",
+            "description": "The application, http:// or https://, without a user or password.",
+            "examples": [
+              "http://shop:3000"
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "detection",
+              "blocking"
+            ],
+            "default": "detection",
+            "description": "detection: rules match and are reported, nothing is refused. New sites start here."
+          },
+          "paranoia": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4,
+            "default": 1,
+            "description": "The rule set's paranoia level: higher catches more and blocks more real users."
+          },
+          "inboundThreshold": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 5,
+            "description": "The anomaly score at which a request is blocked. 5 is one critical match."
+          },
+          "disabledGroups": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "911",
+                "913",
+                "920",
+                "921",
+                "922",
+                "930",
+                "931",
+                "932",
+                "933",
+                "934",
+                "941",
+                "942",
+                "943",
+                "944"
+              ]
+            },
+            "description": "Groups of the rule set turned off, for a stack the site does not run, such as 933 for PHP."
+          }
+        }
+      },
+      "SiteChange": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "Host names without the port, each on one site only. `*` takes every host no other site names.",
+            "examples": [
+              [
+                "shop.example.com",
+                "www.shop.example.com"
+              ]
+            ]
+          },
+          "upstream": {
+            "type": "string",
+            "format": "uri",
+            "description": "The application, http:// or https://, without a user or password.",
+            "examples": [
+              "http://shop:3000"
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "detection",
+              "blocking"
+            ],
+            "default": "detection",
+            "description": "detection: rules match and are reported, nothing is refused. New sites start here."
+          },
+          "paranoia": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4,
+            "default": 1,
+            "description": "The rule set's paranoia level: higher catches more and blocks more real users."
+          },
+          "inboundThreshold": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 5,
+            "description": "The anomaly score at which a request is blocked. 5 is one critical match."
+          },
+          "disabledGroups": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "911",
+                "913",
+                "920",
+                "921",
+                "922",
+                "930",
+                "931",
+                "932",
+                "933",
+                "934",
+                "941",
+                "942",
+                "943",
+                "944"
+              ]
+            },
+            "description": "Groups of the rule set turned off, for a stack the site does not run, such as 933 for PHP."
+          }
+        },
+        "description": "What it names changes; the rest stays."
+      },
+      "Exclusion": {
+        "type": "object",
+        "required": [
+          "id",
+          "siteId",
+          "ruleId",
+          "target",
+          "path",
+          "reason",
+          "createdBy",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "siteId": {
+            "type": "string"
+          },
+          "ruleId": {
+            "type": "string",
+            "description": "A rule's id or a range of ids.",
+            "examples": [
+              "942100",
+              "942000-942999"
+            ]
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only this part of the request, such as ARGS:filter; null for the whole rule."
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only under this path; null for the whole site."
+          },
+          "reason": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ExclusionList": {
+        "type": "object",
+        "required": [
+          "exclusions"
+        ],
+        "properties": {
+          "exclusions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Exclusion"
+            }
+          }
+        }
+      },
+      "NewExclusion": {
+        "type": "object",
+        "required": [
+          "siteId",
+          "ruleId",
+          "reason"
+        ],
+        "properties": {
+          "siteId": {
+            "type": "string"
+          },
+          "ruleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{3,7}(-\\d{3,7})?$"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ARGS, ARGS_GET, ARGS_POST, REQUEST_COOKIES, REQUEST_HEADERS, REQUEST_FILENAME and the like, with a :name. Only with one ruleId, not a range."
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^/"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A path prefix, such as /v1/reports."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      },
+      "Rule": {
+        "type": "object",
+        "required": [
+          "id",
+          "siteId",
+          "name",
+          "seclang",
+          "ruleIds",
+          "disruptive",
+          "enabled",
+          "createdBy",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "siteId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null: every site."
+          },
+          "name": {
+            "type": "string"
+          },
+          "seclang": {
+            "type": "string"
+          },
+          "ruleIds": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "disruptive": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "Of its rules, the ones that refuse a request (deny or drop)."
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "hits24h": {
+            "type": "integer",
+            "description": "Requests its rules matched in the last 24 hours. In lists only."
+          }
+        }
+      },
+      "RuleList": {
+        "type": "object",
+        "required": [
+          "rules"
+        ],
+        "properties": {
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Rule"
+            }
+          }
+        }
+      },
+      "NewRule": {
+        "type": "object",
+        "required": [
+          "name",
+          "seclang"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "siteId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Leave out or null for every site."
+          },
+          "seclang": {
+            "type": "string",
+            "maxLength": 16384,
+            "description": "SecRule and SecAction only, with ids from 1000000 to 1999999, in phase 1 or 2. Operators that read files, look up DNS or run scripts, and the actions ctl, exec, setenv, allow and redirect are refused.",
+            "examples": [
+              "SecRule ARGS:q \"@detectSQLi\" \"id:1000318,phase:2,deny,status:403,log,msg:'Virtual patch: SQL injection in q'\""
+            ]
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "RuleChange": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "siteId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "seclang": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "description": "What it names changes; the rest stays."
+      },
+      "RuleCheck": {
+        "type": "object",
+        "required": [
+          "seclang"
+        ],
+        "properties": {
+          "seclang": {
+            "type": "string"
+          }
+        }
+      },
+      "RuleChecked": {
+        "type": "object",
+        "required": [
+          "ruleIds",
+          "disruptive"
+        ],
+        "properties": {
+          "ruleIds": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "disruptive": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "CrsRule": {
+        "type": "object",
+        "required": [
+          "id",
+          "group",
+          "message",
+          "severity",
+          "paranoia",
+          "tags",
+          "hits24h"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "group": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "paranoia": {
+            "type": "integer",
+            "description": "The level from which it runs."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hits24h": {
+            "type": "integer"
+          }
+        }
+      },
+      "Crs": {
+        "type": "object",
+        "required": [
+          "coraza",
+          "crs",
+          "groups",
+          "rules"
+        ],
+        "properties": {
+          "coraza": {
+            "type": "string"
+          },
+          "crs": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "rules",
+                "byParanoia",
+                "hits24h"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "rules": {
+                  "type": "integer"
+                },
+                "byParanoia": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "description": "Rules from paranoia level 1, 2, 3 and 4."
+                },
+                "hits24h": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrsRule"
+            }
+          }
+        }
+      },
+      "Match": {
+        "type": "object",
+        "required": [
+          "id",
+          "message",
+          "severity",
+          "tags",
+          "variable",
+          "value",
+          "data"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variable": {
+            "type": "string",
+            "examples": [
+              "ARGS:q"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "description": "What matched; for a parameter that names a secret, only its length."
+          },
+          "data": {
+            "type": "string"
+          }
+        }
+      },
+      "Event": {
+        "type": "object",
+        "required": [
+          "id",
+          "siteId",
+          "time",
+          "clientIp",
+          "method",
+          "host",
+          "path",
+          "query",
+          "userAgent",
+          "action",
+          "score",
+          "threshold",
+          "status",
+          "ruleId",
+          "message",
+          "attack",
+          "matches"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The reference a blocked client was shown."
+          },
+          "siteId": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "clientIp": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string",
+            "description": "Values of parameters that name a secret are left out."
+          },
+          "userAgent": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "blocked",
+              "detected",
+              "logged"
+            ],
+            "description": "blocked; detected: it would have been blocked, the site is in detection-only mode; logged: a rule matched below the threshold."
+          },
+          "score": {
+            "type": "integer",
+            "description": "The rule set's inbound anomaly score."
+          },
+          "threshold": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "integer",
+            "description": "What the client got."
+          },
+          "ruleId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The rule that weighed most."
+          },
+          "message": {
+            "type": "string"
+          },
+          "attack": {
+            "type": "string",
+            "description": "sqli, xss, lfi, rce, protocol, ... from the rule's tags; custom for rules of your own."
+          },
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Match"
+            }
+          }
+        }
+      },
+      "EventList": {
+        "type": "object",
+        "required": [
+          "events",
+          "next"
+        ],
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            }
+          },
+          "next": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Pass as cursor for the next page."
+          }
+        }
+      },
+      "Traffic": {
+        "type": "object",
+        "required": [
+          "range",
+          "bucketSeconds",
+          "buckets",
+          "totals",
+          "attacks",
+          "rules",
+          "clients"
+        ],
+        "properties": {
+          "range": {
+            "type": "string"
+          },
+          "bucketSeconds": {
+            "type": "integer"
+          },
+          "buckets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "requests",
+                "blocked",
+                "detected",
+                "logged",
+                "upstreamErrors",
+                "time"
+              ],
+              "properties": {
+                "requests": {
+                  "type": "integer"
+                },
+                "blocked": {
+                  "type": "integer"
+                },
+                "detected": {
+                  "type": "integer"
+                },
+                "logged": {
+                  "type": "integer"
+                },
+                "upstreamErrors": {
+                  "type": "integer"
+                },
+                "time": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "totals": {
+            "type": "object",
+            "required": [
+              "requests",
+              "blocked",
+              "detected",
+              "logged",
+              "upstreamErrors"
+            ],
+            "properties": {
+              "requests": {
+                "type": "integer"
+              },
+              "blocked": {
+                "type": "integer"
+              },
+              "detected": {
+                "type": "integer"
+              },
+              "logged": {
+                "type": "integer"
+              },
+              "upstreamErrors": {
+                "type": "integer"
+              }
+            }
+          },
+          "attacks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "attack",
+                "count"
+              ],
+              "properties": {
+                "attack": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "ruleId",
+                "count",
+                "message"
+              ],
+              "properties": {
+                "ruleId": {
+                  "type": "integer"
+                },
+                "count": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "clients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "clientIp",
+                "count"
+              ],
+              "properties": {
+                "clientIp": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

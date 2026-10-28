@@ -1,0 +1,41 @@
+# WAF. Coraza with the OWASP Core Rule Set stands in front of your sites inside its one container; the application
+# manages sites, rules and exclusions and shows what was blocked and why (ADR 0069).
+#
+#   openssl rand -hex 32 > openasy-kek   # WAF's key: sign-in secrets (ADR 0021). Keep it with your backups
+#   docker compose up -d
+#   docker compose logs waf | grep 'no owner yet'   # the one-time link that creates the owner account
+services:
+  waf:
+    image: ghcr.io/openasy/waf:0.1.0
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: [/tmp] # the proxy's config and request bodies Coraza buffers; never on the volume
+    ports:
+      - "127.0.0.1:8080:8080" # UI and API; put a TLS proxy in front to reach it from elsewhere
+      - "127.0.0.1:8000:8000" # the sites: your TLS proxy sends their requests here, in place of the application
+    volumes:
+      - waf-data:/data # SQLite: sites, rules, exclusions, what was blocked, people
+    secrets:
+      - openasy-kek # mounted at /run/secrets/openasy-kek
+    environment:
+      # The address people open WAF at; with a TLS proxy in front, its https:// URL.
+      WAF_PUBLIC_URL: ${WAF_PUBLIC_URL:-http://localhost:8080}
+      # The TLS proxy in front of the sites, whose X-Forwarded-For names the client (ADR 0026). By default none.
+      OPENASY_TRUSTED_PROXIES: ${OPENASY_TRUSTED_PROXIES:-}
+      # The install's OpenAsy products, for the product switcher.
+      OPENASY_PRODUCTS: ${OPENASY_PRODUCTS:-}
+      # How long matched requests and traffic counts are kept:
+      # WAF_RETENTION_DAYS: "30"
+      # Sign in with your identity provider (OIDC), see the README:
+      # OPENASY_OIDC_ISSUER: https://login.example.com
+      # OPENASY_OIDC_CLIENT_ID: waf
+      # OPENASY_OIDC_CLIENT_SECRET: ${OPENASY_OIDC_CLIENT_SECRET}
+
+volumes:
+  waf-data:
+
+secrets:
+  openasy-kek:
+    file: ./openasy-kek
