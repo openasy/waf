@@ -3,7 +3,7 @@
 # The proxy (Go: Coraza with the OWASP Core Rule Set) is cross-compiled on the machine that builds, for the platform
 # being built, with the pinned toolchain the script checks against its checksum (ADR 0027, 0069). Go fetches Coraza and
 # the rule set as proxy/go.sum pins them, which needs the CA certificates.
-FROM --platform=$BUILDPLATFORM node:26.12.0-trixie-slim AS proxy
+FROM --platform=$BUILDPLATFORM node:26.12.1-trixie-slim AS proxy
 ARG TARGETARCH
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
@@ -11,7 +11,7 @@ COPY scripts/proxy.ts scripts/
 COPY proxy proxy
 RUN node scripts/proxy.ts linux "${TARGETARCH:-amd64}" /out
 
-FROM node:26.12.0-trixie-slim AS build
+FROM node:26.12.1-trixie-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
