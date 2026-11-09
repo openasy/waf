@@ -1,6 +1,9 @@
 // Writes openapi.json (ADR 0014, 0024). Run `node scripts/openapi.ts` after changing the API; a test fails when the
 // file is out of date. Sign-in routes come from @openasy/auth and are merged in when the description is served.
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
+
+// The release's version, so a release changes package.json only.
+const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string };
 
 type S = Record<string, unknown>;
 const ref = (n: string) => ({ $ref: `#/components/schemas/${n}` });
@@ -258,7 +261,7 @@ const spec = {
   openapi: "3.1.0",
   info: {
     title: "OpenAsy WAF API",
-    version: "0.1.0",
+    version,
     description:
       "Sites behind the web application firewall, the OWASP Core Rule Set they run in Coraza, exclusions, custom rules, and the requests the rules matched (ADR 0069).",
     license: { name: "AGPL-3.0-only", identifier: "AGPL-3.0-only" },
