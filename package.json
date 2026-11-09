@@ -1,6 +1,6 @@
 {
   "name": "@openasy/waf",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "OpenAsy WAF: attacks on your web applications blocked at the door by Coraza and the OWASP Core Rule Set, while the code is fixed.",
   "license": "AGPL-3.0-only",
