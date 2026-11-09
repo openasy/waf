@@ -74,7 +74,7 @@ import {
   type Traffic,
   type WafEvent,
 } from "./api.ts";
-import { useT, type T } from "./i18n.ts";
+import { useT, type T, viewerLocale, setViewerLocale, fixed } from "./i18n.ts";
 import { nextId, PATCH_KINDS, PATCH_PARAMETER, PATCH_PATH, virtualPatch, type PatchKind } from "./patch.ts";
 import { search } from "./search.ts";
 
@@ -149,8 +149,8 @@ function useAction(after: () => void) {
 }
 
 const send = (method: string, body?: unknown): RequestInit => ({ method, ...(body !== undefined && { body: JSON.stringify(body) }) });
-const when = (iso: string) => new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-const clock = (iso: string) => new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+const when = (iso: string) => new Date(iso).toLocaleString(viewerLocale(), { dateStyle: "medium", timeStyle: "short" });
+const clock = (iso: string) => new Date(iso).toLocaleTimeString(viewerLocale(), { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
 function ErrorText({ message }: { message?: string }) {
   return message ? <p className="m-0 text-xs text-danger">{message}</p> : null;
@@ -301,7 +301,7 @@ function TrafficPage({ call, sites, summary }: { call: Call; sites: Site[]; summ
     () =>
       (traffic?.buckets ?? []).map((b) =>
         new Date(b.time).toLocaleString(
-          undefined,
+          viewerLocale(),
           range === "1h" || range === "24h" ? { hour: "2-digit", minute: "2-digit" } : { month: "short", day: "numeric" },
         ),
       ),
@@ -331,7 +331,7 @@ function TrafficPage({ call, sites, summary }: { call: Call; sites: Site[]; summ
         <KpiCard
           label={t("traffic.requests", { range: t(`range.${range}`) })}
           value={tot ? formatNumber(tot.requests) : "–"}
-          unit={tot ? t("traffic.perSecond", { n: (tot.requests / ((traffic?.buckets.length ?? 1) * (traffic?.bucketSeconds ?? 60))).toFixed(2) }) : undefined}
+          unit={tot ? t("traffic.perSecond", { n: fixed(tot.requests / ((traffic?.buckets.length ?? 1) * (traffic?.bucketSeconds ?? 60)), 2) }) : undefined}
           trend={traffic?.buckets.map((b) => b.requests)}
         />
         <KpiCard
@@ -1420,6 +1420,7 @@ export function App() {
   const installBrand = useInstallBrand();
   const [theme] = useThemePreference();
   const [locale] = useLocalePreference();
+  setViewerLocale(locale);
   return (
     // The install's brand from config/brand.env (ADR 0053); OpenAsy's own look where it sets none.
     <BrandProvider theme={theme} locale={locale} brand={{ name: "OpenAsy", organization: undefined, ...installBrand }} className="min-h-screen">

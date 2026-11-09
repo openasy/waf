@@ -7,3 +7,14 @@ import tr from "./messages/tr.json";
 
 export const useT = defineMessages("waf", { en, tr, de });
 export type T = ReturnType<typeof useT>;
+
+let viewer = "en";
+/** The language picked in the top bar, for dates and numbers written outside React (ADR 0006). App sets it while rendering. */
+export const viewerLocale = (): string => viewer;
+export function setViewerLocale(locale: string): void {
+  viewer = locale;
+}
+
+/** A number with this many decimals, written as the viewer's language writes it: 4.9 in English, 4,9 in Turkish and German. */
+export const fixed = (value: number, digits: number): string =>
+  value.toLocaleString(viewer, { minimumFractionDigits: digits, maximumFractionDigits: digits, useGrouping: false });
